@@ -6,3 +6,13 @@ migrations/
 logs/
 .idea/
 .vscode/
+venv
+app.db
+microblog.log*
+lib
+lib64
+__pycache__
+*.py[cod]
+
+# C extensions
+*.so
