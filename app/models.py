@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import time
 from app import db
 from app import login
 from hashlib import md5
@@ -54,6 +55,12 @@ class User(UserMixin, db.Model):
                 followers.c.follower_id == self.id)
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.timestamp.desc())
+    
+    def get_reset_passwor_token(self, expires_in=600):
+        return jw.encode(
+            {'reset_password': self.id, 'exp': time() + expires_in},
+            app.config['SECRET_KEY'], algorithm='HS256'
+        ).decode('utf-8')
 
 @login.user_loader
 def load_user(id):
