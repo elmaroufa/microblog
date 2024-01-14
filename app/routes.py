@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import render_template,flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
-from werkzeug.urls import url_parse
+import sqlalchemy as sa
+from urllib.parse import urlsplit
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, EmptyForm, PostForm \
 , ResetPasswordRequestForm, ResetPasswordForm
@@ -42,7 +43,7 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlsplit(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html',  title='Sign In', form=form)
@@ -88,7 +89,7 @@ def user(username):
 @app.before_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
+        current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
 
 
@@ -151,11 +152,11 @@ def unfollow(username):
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.timestamp.desc()).paginate(
-        page=page, per_page = app.config['POSTS_PER_PAGE'],  error_out=False)
-    next_url = url_for('index', page=posts.nex_num) \
+    query = sa.select(Post).order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page, per_page = app.config['POSTS_PER_PAGE'],  error_out=False)
+    next_url = url_for('index', page=posts.next_num) \
     if posts.has_next else None
-    prev_url = url_for('index', page=posts.pre_num) \
+    prev_url = url_for('index', page=posts.prev_num) \
     if posts.has_prev else None
     return render_template('index.html', title='EXPLORE',posts=posts.items,
                          next_url=next_url, prev_url=prev_url)
