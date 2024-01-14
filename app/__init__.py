@@ -16,6 +16,7 @@ login = LoginManager(app)
 login.login_view = 'login'
 mail = Mail(app)
 migrate = Migrate(app, db)
+bootstrap = Bootstrap(app)
 
 if not app.debug:
     if app.config['MAIL_SERVER']:
