@@ -39,6 +39,14 @@ def create_app(config_class=Config):
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
+
+    from app.cli import bp as cli_bp
+    app.register_blueprint(cli_bp)
 
     if not app.debug:
         if app.config['MAIL_SERVER']:
